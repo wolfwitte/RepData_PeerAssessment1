@@ -1,7 +1,7 @@
-#Reproducible Research: Course Project 1
-by Wolf Witte
+# Reproducible Research: Course Project 1
+*by Wolf Witte*
 
-##Loading and preprocessing the data
+## Loading and preprocessing the data
 
 For the following code to work it is required that the gitHub repository https://github.com/rdpeng/RepData_PeerAssessment1 has been cloned **into your working directory**, and that the file *activity.zip* is found there. First we load the file *activity.csv* into R and assign the contents to the variable *activity*. Then we look at the structure of *activity*.
 
@@ -17,7 +17,7 @@ The variable *date* is currently handled as a factor. So we convert it to the da
 activity$date <- as.Date(as.character(activity$date))
 ```
 
-##What is mean total number of steps taken per day?
+## What is mean total number of steps taken per day?
 
 In order to calculate the total number of steps per day, the *dplyr*-package is loaded. The dataframe *activity* is then grouped by date and summarized with the sum of steps per day assigned to the variable *sum*. Lastly, a plot is created using the base plotting-package with *type = h*, which plots the data as histogram-like vertical lines.
 
@@ -36,7 +36,7 @@ act_med <- median(sum_steps$sum)
 
 The mean number of steps per day is `r act_mean`, the median is `r act_med`.
 
-##What is the average daily activity pattern?
+## What is the average daily activity pattern?
 
 Here, again, we group the dataframe *activity*, but this time by the variable *interval*. We then summarize it with the mean of steps per interval assigned to the variable *mean*. This new dataframe is then plotted with *type* set to *"l"*.
 
@@ -53,7 +53,7 @@ head(arrange(av_steps, desc(mean)),1)
 
 We learn that interval 835 contains the highest number of steps.
 
-##Imputing missing values
+## Imputing missing values
 
 First, we calculate the number of missing values per variable.
 
@@ -94,7 +94,7 @@ summary(sum_steps2$sum)
 
 This seems to be the or an effect of the method used for imputing the missing values.
 
-##Are there differences in activity patterns between weekdays and weekends?
+## Are there differences in activity patterns between weekdays and weekends?
 
 We create a new factor variable in the dataset with two levels - "weekday" and "weekend" - indicating whether a given date is a weekday or weekend day. First, we create a character-vector containing the abbreviated weekdays in German.
 
