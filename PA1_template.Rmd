@@ -1,25 +1,132 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+#Reproducible Research: Course Project 1
+by Wolf Witte
 
+##Loading and preprocessing the data
 
-## Loading and preprocessing the data
+For the following code to work it is required that the gitHub repository https://github.com/rdpeng/RepData_PeerAssessment1 has been cloned **into your working directory**, and that the file *activity.zip* is found there. First we load the file *activity.csv* into R and assign the contents to the variable *activity*. Then we look at the structure of *activity*.
 
+```{r}
+unzip("activity.zip")
+activity <- read.csv("activity.csv")
+str(activity)
+```
 
+The variable *date* is currently handled as a factor. So we convert it to the date-format.
 
-## What is mean total number of steps taken per day?
+```{r}
+activity$date <- as.Date(as.character(activity$date))
+```
 
+##What is mean total number of steps taken per day?
 
+In order to calculate the total number of steps per day, the *dplyr*-package is loaded. The dataframe *activity* is then grouped by date and summarized with the sum of steps per day assigned to the variable *sum*. Lastly, a plot is created using the base plotting-package with *type = h*, which plots the data as histogram-like vertical lines.
 
-## What is the average daily activity pattern?
+```{r}
+library(dplyr)
+sum_steps <- activity %>% group_by(date) %>% summarize(sum = sum(steps, na.rm = TRUE))
+plot(sum_steps, type = "h", main = "Sum of steps per day")
+```
 
+Then we calculate the mean and median of the total number of steps taken per day.
 
+```{r}
+act_mean <- mean(sum_steps$sum)
+act_med <- median(sum_steps$sum)
+```
 
-## Imputing missing values
+The mean number of steps per day is `r act_mean`, the median is `r act_med`.
 
+##What is the average daily activity pattern?
 
+Here, again, we group the dataframe *activity*, but this time by the variable *interval*. We then summarize it with the mean of steps per interval assigned to the variable *mean*. This new dataframe is then plotted with *type* set to *"l"*.
 
-## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+av_steps <- activity  %>% group_by(interval) %>% summarize(mean = mean(steps, na.rm = TRUE))
+plot(av_steps, type = "l", main = "Average number of steps per interval")
+```
+
+Next we compute the 5-minute interval, on average across all the days in the dataset, which contains the maximum number of steps:
+
+```{r}
+head(arrange(av_steps, desc(mean)),1)
+```
+
+We learn that interval 835 contains the highest number of steps.
+
+##Imputing missing values
+
+First, we calculate the number of missing values per variable.
+
+```{r}
+colSums(is.na(activity))
+```
+
+Apparently, missing values only appear in the variable *steps* and there are 2304 of them.
+
+In order to fill in all of the missing values in the dataset, i decide to replace them with the average number of steps across all days for the given interval. These steps are performed on the new dataset *activity2*, which is created as an exact copy of *activity*:
+
+```{r}
+activity2 <- activity
+for (i in 1:nrow(activity2)) {
+  if(is.na(activity2[i,1])) activity2[i,1] = mean(subset(activity2, interval == activity2[i,3])[,1], na.rm = TRUE)
+}
+```
+
+We calculate and plot the total number of steps per day as previously, only this time with imputed missing values, so we use the dataset *activity2*:
+
+```{r}
+sum_steps2 <- activity2 %>% group_by(date) %>% summarize(sum = sum(steps))
+plot(sum_steps2, type = "h", main = "Sum of steps per day")
+```
+
+Again, we calculate the mean and median of the total number of steps taken per day.
+
+```{r}
+act_mean2 <- mean(sum_steps2$sum)
+act_med2 <- median(sum_steps2$sum)
+```
+
+The mean number of steps per day is `r act_mean2`, the median is `r act_med2`. They are obviously and strangely identical, which can be explained by all values being identical. However, this is not the case, as the plot and also the following summary shows:
+
+```{r}
+summary(sum_steps2$sum)
+```
+
+This seems to be the or an effect of the method used for imputing the missing values.
+
+##Are there differences in activity patterns between weekdays and weekends?
+
+We create a new factor variable in the dataset with two levels - "weekday" and "weekend" - indicating whether a given date is a weekday or weekend day. First, we create a character-vector containing the abbreviated weekdays in German.
+
+```{r}
+weekday <- c("Mo","Di","Mi","Do","Fr")
+```
+
+Then we add a fourth column "Day" to the dataset *activity2* which is converted to a factor.
+
+```{r}
+for (i in 1:nrow(activity2)) {
+  if(weekdays(activity2[i,2], abbreviate = TRUE) %in% weekday) (activity2[i,4] = "weekday")
+    else activity2[i,4] = "weekend"
+}
+activity2$V4 <- as.factor(activity2$V4)
+activity2 <- rename(activity2, Day = V4)
+str(activity2)
+```
+
+We see that the new variable *Day* is indeed a factor with the two levels "weekday" and "weekend".
+
+Now we create two datasets, one for weekdays only, one for weekends only, where each contains the average number of steps per interval.
+
+```{r}
+weekday_mean <- activity2 %>% filter(Day == "weekday") %>% group_by(interval) %>% summarize(mean = mean(steps))
+weekend_mean <- activity2 %>% filter(Day == "weekend") %>% group_by(interval) %>% summarize(mean = mean(steps))
+```
+
+Lastly, we create two time series plots of the 5-minute interval and the average number of steps taken, averaged across all weekday days or weekend days:
+
+```{r}
+par(mfrow = c(2,1))
+plot(weekday_mean, type="l", main = "Average steps on weekdays")
+plot(weekend_mean, type="l", main = "Average steps on Weekends")
+```
