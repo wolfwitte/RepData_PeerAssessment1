@@ -1,5 +1,10 @@
-# Reproducible Research: Course Project 1
-*by Wolf Witte*
+---
+title: "Reproducible Research: Peer Assessment 1"
+author: Wolf Witte
+output: 
+  md_document:
+keep_md: true
+---
 
 ## Loading and preprocessing the data
 
@@ -125,7 +130,7 @@ weekend_mean <- activity2 %>% filter(Day == "weekend") %>% group_by(interval) %>
 
 Lastly, we create two time series plots of the 5-minute interval and the average number of steps taken, averaged across all weekday days or weekend days:
 
-```{r}
+```{r fig.height= 12}
 par(mfrow = c(2,1))
 plot(weekday_mean, type="l", main = "Average steps on weekdays")
 plot(weekend_mean, type="l", main = "Average steps on Weekends")
